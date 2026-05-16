@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DESMO — Carta de Precios</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #e8d5a0; font-family: 'Lato', sans-serif; min-height: 100vh; padding-bottom: 100px; }
+
+    header { background: #0a0a0a; border-bottom: 1px solid #b8972a; padding: 1.5rem 1.5rem 1rem; text-align: center; }
+    .logo-text { font-family: 'Cinzel', serif; font-size: clamp(2rem, 8vw, 3rem); font-weight: 700; color: #c9a227; letter-spacing: 10px; }
+    .logo-sub { font-size: 0.65rem; letter-spacing: 4px; color: #7a6520; margin-top: 4px; text-transform: uppercase; }
+    .logo-247 { font-size: 0.65rem; color: #4a3a10; letter-spacing: 3px; margin-top: 3px; }
+    .divider { display: flex; align-items: center; gap: 10px; margin: 0.6rem auto; max-width: 140px; }
+    .divider span { flex: 1; height: 1px; background: #b8972a; }
+
+    .combo-banner { background: #100e00; border-left: 3px solid #c9a227; border-right: 3px solid #c9a227; margin: 0.8rem 1rem; padding: 0.6rem 1rem; font-size: 0.7rem; color: #c9a227; letter-spacing: 1px; text-align: center; }
+
+    nav { display: flex; overflow-x: auto; gap: 6px; padding: 0.8rem 1rem 0.4rem; scrollbar-width: none; }
+    nav::-webkit-scrollbar { display: none; }
+    .nav-btn { flex-shrink: 0; padding: 6px 14px; border: 1px solid #3a2a08; background: transparent; color: #7a6520; font-family: 'Lato', sans-serif; font-size: 0.67rem; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border-radius: 2px; }
+    .nav-btn:hover, .nav-btn.active { background: #c9a227; color: #0a0a0a; border-color: #c9a227; font-weight: 700; }
+
+    .section { display: none; padding: 0 1rem; animation: fadeIn 0.25s ease; }
+    .section.visible { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+    .cat-title { font-family: 'Cinzel', serif; font-size: 0.9rem; color: #c9a227; letter-spacing: 4px; text-align: center; margin: 1.4rem 0 0.4rem; text-transform: uppercase; }
+    .cat-title::after { content:''; display:block; width:28px; height:1px; background:#c9a227; margin:5px auto 0; }
+    .includes-note { background: #0d0a00; border: 1px solid #2a1e00; padding: 0.45rem 1rem; margin: 0.4rem 0 0.6rem; font-size: 0.67rem; color: #7a6520; text-align: center; letter-spacing: 1px; border-radius: 2px; }
+    .includes-note strong { color: #c9a227; }
+
+    .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* TARJETA CON FOTO */
+    .item-card {
+      background: #111;
+      border: 1px solid #1e1600;
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      user-select: none;
+    }
+    .item-card.selected { border-color: #c9a227; background: #1a1400; }
+
+    .check-circle {
+      position: absolute;
+      top: 7px; right: 7px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 1.5px solid #3a2a08;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      color: transparent;
+      z-index: 2;
+      transition: all 0.2s;
+    }
+    .item-card.selected .check-circle { background: #c9a227; border-color: #c9a227; color: #0a0a0a; }
+
+    /* FOTO */
+    .item-img {
+      height: 100px;
+      background: #0d0a00;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .item-img img {
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+      padding: 6px;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9));
+      transition: transform 0.2s;
+    }
+    .item-card.selected .item-img img { transform: scale(1.06); }
+    .item-img .fallback { font-size: 2.2rem; opacity: 0.2; }
+
+    /* MULTIPLES FOTOS (Mike's, Ruskaya, etc.) */
+    .item-img.multi { gap: 0; }
+    .item-img.multi img { width: 33.33%; height: 100%; object-fit: contain; padding: 4px 2px; }
+
+    .item-info { padding: 7px 8px 8px; }
+    .item-name { font-size: 0.7rem; color: #d4b86a; letter-spacing: 0.8px; text-transform: uppercase; font-weight: 700; line-height: 1.3; padding-right: 20px; }
+    .item-vol { font-size: 0.6rem; color: #4a3a10; margin-top: 2px; }
+    .item-price { font-family: 'Cinzel', serif; font-size: 1.3rem; color: #c9a227; margin-top: 5px; font-weight: 700; line-height: 1; }
+    .item-price .cur { font-size: 0.68rem; font-family: 'Lato', sans-serif; color: #7a6520; vertical-align: top; margin-top: 3px; display: inline-block; }
+
+    .full-card { grid-column: 1 / -1; }
+    .full-card .item-img { height: 110px; }
+
+    /* CARRITO */
+    .cart-fab { position: fixed; bottom: 1.2rem; right: 1.2rem; background: #c9a227; color: #0a0a0a; border: none; border-radius: 50px; padding: 0.8rem 1.4rem; font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 2px; cursor: pointer; display: none; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(201,162,39,0.4); z-index: 100; }
+    .cart-fab.show { display: flex; }
+    .cart-badge { background: #0a0a0a; color: #c9a227; border-radius: 50%; width: 22px; height: 22px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; align-items: flex-end; justify-content: center; }
+    .overlay.show { display: flex; }
+    .modal { background: #111; border: 1px solid #2a1e00; border-radius: 8px 8px 0 0; width: 100%; max-width: 500px; max-height: 88vh; overflow-y: auto; padding: 1.5rem 1.2rem 2rem; animation: slideUp 0.28s ease; }
+    @keyframes slideUp { from { transform: translateY(30px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+    .modal-title { font-family: 'Cinzel', serif; font-size: 1rem; color: #c9a227; letter-spacing: 3px; text-align: center; margin-bottom: 1.2rem; text-transform: uppercase; }
+    .close-btn { float: right; background: none; border: none; color: #7a6520; font-size: 1.3rem; cursor: pointer; }
+
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid #1e1600; gap: 8px; }
+    .cart-item-img { width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8)); flex-shrink: 0; }
+    .cart-item-name { font-size: 0.7rem; color: #d4b86a; text-transform: uppercase; flex: 1; }
+    .cart-item-sub { font-size: 0.6rem; color: #4a3a10; margin-top: 2px; }
+    .cart-item-qty { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .cart-item-price { font-family: 'Cinzel', serif; color: #c9a227; font-size: 0.9rem; min-width: 46px; text-align: right; }
+    .qty-btn { width: 28px; height: 28px; border: 1px solid #3a2a08; background: #0a0a0a; color: #c9a227; font-size: 1rem; cursor: pointer; border-radius: 2px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .qty-num { font-family: 'Cinzel', serif; font-size: 0.9rem; color: #c9a227; min-width: 20px; text-align: center; }
+
+    .cart-total { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid #b8972a; }
+    .cart-total-label { font-size: 0.72rem; color: #7a6520; letter-spacing: 2px; text-transform: uppercase; }
+    .cart-total-price { font-family: 'Cinzel', serif; font-size: 1.5rem; color: #c9a227; }
+    .separator { border: none; border-top: 1px solid #1e1600; margin: 1rem 0; }
+
+    /* ADICIONALES en carrito */
+    .adics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 0.7rem; }
+    .adic-card { background: #0d0a00; border: 1px solid #1e1600; border-radius: 4px; overflow: hidden; cursor: pointer; transition: border-color 0.2s; }
+    .adic-card.selected { border-color: #c9a227; background: #1a1400; }
+    .adic-img { height: 60px; display: flex; align-items: center; justify-content: center; }
+    .adic-img img { height: 100%; width: 100%; object-fit: contain; padding: 4px; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); }
+    .adic-info { padding: 5px 7px 6px; }
+    .adic-name { font-size: 0.65rem; color: #d4b86a; text-transform: uppercase; font-weight: 700; }
+    .adic-price { font-family: 'Cinzel', serif; font-size: 0.95rem; color: #c9a227; margin-top: 2px; }
+    .adic-price .cur { font-size: 0.62rem; font-family: 'Lato', sans-serif; color: #7a6520; }
+
+    /* FORM */
+    .form-group { margin-bottom: 0.9rem; }
+    .form-label { font-size: 0.65rem; color: #7a6520; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; display: block; }
+    .form-input { width: 100%; background: #0a0a0a; border: 1px solid #2a1e00; border-radius: 2px; padding: 0.65rem 0.8rem; color: #e8d5a0; font-family: 'Lato', sans-serif; font-size: 0.85rem; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: #c9a227; }
+    .form-input::placeholder { color: #3a2a08; }
+
+    .yape-note { background: #0d0a00; border-left: 3px solid #5b1e8c; padding: 0.85rem 1rem; margin: 1rem 0; font-size: 0.73rem; color: #c9a2ca; line-height: 1.7; border-radius: 2px; }
+    .yape-note strong { color: #d4b86a; display: block; margin-bottom: 6px; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; }
+    .copy-number { display: flex; align-items: center; gap: 10px; background: #0a0a0a; border: 1px solid #2a1e00; border-radius: 2px; padding: 0.5rem 0.8rem; margin-top: 6px; }
+    .copy-number span { font-family: 'Cinzel', serif; font-size: 1.1rem; color: #c9a227; letter-spacing: 3px; flex: 1; }
+    .copy-btn { background: #c9a227; color: #0a0a0a; border: none; padding: 4px 12px; font-size: 0.65rem; letter-spacing: 1.5px; font-family: 'Lato', sans-serif; text-transform: uppercase; cursor: pointer; border-radius: 2px; font-weight: 700; }
+
+    .btn-primary { width: 100%; background: #c9a227; color: #0a0a0a; border: none; padding: 0.9rem; font-family: 'Cinzel', serif; font-size: 0.88rem; letter-spacing: 3px; cursor: pointer; border-radius: 2px; margin-top: 0.5rem; text-transform: uppercase; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary { width: 100%; background: transparent; color: #7a6520; border: 1px solid #3a2a08; padding: 0.7rem; font-family: 'Lato', sans-serif; font-size: 0.73rem; letter-spacing: 2px; cursor: pointer; border-radius: 2px; margin-top: 0.5rem; text-transform: uppercase; }
+
+    .contact-bar { margin: 2rem 1rem 0; border: 1px solid #2a1e00; padding: 1rem 1.2rem; display: flex; justify-content: space-between; align-items: center; background: #111; border-radius: 3px; }
+    .contact-label { font-size: 0.6rem; color: #4a3a10; letter-spacing: 2px; text-transform: uppercase; }
+    .contact-number { font-family: 'Cinzel', serif; font-size: 1rem; color: #c9a227; letter-spacing: 2px; margin-top: 3px; }
+    .yape-badge { background: #5b1e8c; color: #fff; font-size: 0.65rem; padding: 5px 12px; border-radius: 2px; letter-spacing: 2px; font-weight: 700; }
+
+    .toast { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); padding: 0.7rem 1.4rem; border-radius: 4px; font-size: 0.8rem; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; background: #1a3a1a; border: 1px solid #2a6a2a; color: #7adc7a; }
+    .toast.show { opacity: 1; }
+
+    .waiting-screen { text-align: center; padding: 2rem 1rem; }
+    .waiting-icon { font-size: 3rem; margin-bottom: 1rem; animation: spin 2s linear infinite; display: inline-block; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .waiting-title { font-family: 'Cinzel', serif; font-size: 1.1rem; color: #c9a227; letter-spacing: 3px; margin-bottom: 0.5rem; }
+    .waiting-sub { font-size: 0.75rem; color: #7a6520; line-height: 1.8; }
+
+    @media (max-width: 360px) { .items-grid, .adics-grid { grid-template-columns: 1fr; } .full-card { grid-column: 1; } }
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<header>
+  <div class="logo-text">DESMO</div>
+  <div class="logo-sub">Chancay</div>
+  <div class="logo-247">24 / 7</div>
+  <div class="divider"><span></span><span></span></div>
+</header>
+
+<div class="combo-banner">✦ COMBOS INCLUYEN: gaseosa o energizante + hielo 2 kg + vasos ✦</div>
+
+<nav>
+  <button class="nav-btn active" onclick="showSection('combos',this)">Combos</button>
+  <button class="nav-btn" onclick="showSection('cervezas',this)">Cervezas</button>
+  <button class="nav-btn" onclick="showSection('vinos',this)">Vinos</button>
+  <button class="nav-btn" onclick="showSection('rtd',this)">Ready to drink</button>
+  <button class="nav-btn" onclick="showSection('cigarros',this)">Cigarros</button>
+</nav>
+
+<!-- BASE URL de imágenes -->
+<script>
+  const IMG = 'https://ezzzien.github.io/LICORERIADESMO/Botellas/';
+</script>
+
+<!-- ===== COMBOS ===== -->
+<div id="combos" class="section visible">
+
+  <div class="cat-title">Combo Ron</div>
+  <div class="includes-note"><strong>Incluye</strong> gaseosa o energizante + hielo 2 kg</div>
+  <div class="items-grid">
+    <div class="item-card" onclick="toggle(this,'Cartavio Black 1L',46)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/RON CARTAVIO BLACK.png" alt="Cartavio" onerror="this.parentNode.innerHTML='<div class=fallback>🥃</div>'"></div>
+      <div class="item-info"><div class="item-name">Cartavio Black</div><div class="item-vol">1 L</div><div class="item-price"><span class="cur">S/.</span>46</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Medellin 750mL',50)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/RON MEDELLIN.png" alt="Medellín" onerror="this.parentNode.innerHTML='<div class=fallback>🥃</div>'"></div>
+      <div class="item-info"><div class="item-name">Medellín</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>50</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Flor de Cana 750mL',60)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/RON FLOR DE CAÑA.png" alt="Flor de Caña" onerror="this.parentNode.innerHTML='<div class=fallback>🥃</div>'"></div>
+      <div class="item-info"><div class="item-name">Flor de Caña</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>60</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Ron Barcelo 1.75L',100)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/RON BARCELO.png" alt="Barceló" onerror="this.parentNode.innerHTML='<div class=fallback>🥃</div>'"></div>
+      <div class="item-info"><div class="item-name">Ron Barceló</div><div class="item-vol">1.75 L</div><div class="item-price"><span class="cur">S/.</span>100</div></div>
+    </div>
+  </div>
+
+  <div class="cat-title">Combo Whisky</div>
+  <div class="includes-note"><strong>Incluye</strong> gaseosa o energizante + hielo 2 kg</div>
+  <div class="items-grid">
+    <div class="item-card" onclick="toggle(this,'Passport 750mL',43)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/WHISKY PASSPORT.png" alt="Passport" onerror="this.parentNode.innerHTML='<div class=fallback>🥃</div>'"></div>
+      <div class="item-info"><div class="item-name">Passport</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>43</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Ballantines 750mL',63)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/WHISKY BALLANTINES.png" alt="Ballantines" onerror="this.parentNode.innerHTML='<div class=fallback>🥃</div>'"></div>
+      <div class="item-info"><div class="item-name">Ballantines</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>63</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Red Label 750mL',70)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/WHISKY RED LABEL.png" alt="Red Label" onerror="this.parentNode.innerHTML='<div class=fallback>🥃</div>'"></div>
+      <div class="item-info"><div class="item-name">Red Label</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>70</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Black Label 750mL',140)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/WHISKY BLACK LABEL.png" alt="Black Label" onerror="this.parentNode.innerHTML='<div class=fallback>🥃</div>'"></div>
+      <div class="item-info"><div class="item-name">Black Label</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>140</div></div>
+    </div>
+  </div>
+
+  <div class="cat-title">Combo Vodka</div>
+  <div class="includes-note"><strong>Incluye</strong> gaseosa o energizante + hielo 2 kg</div>
+  <div class="items-grid">
+    <div class="item-card" onclick="toggle(this,'Ruskaya 750mL',38)">
+      <div class="check-circle">✓</div>
+      <div class="item-img multi">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/RUSKAYA VERDE.png" alt="Ruskaya Verde" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/RUSKAYA AMARILLO.png" alt="Ruskaya Amarillo" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/RUSKAYA ROSA.png" alt="Ruskaya Rosa" onerror="this.style.display='none'">
+      </div>
+      <div class="item-info"><div class="item-name">Ruskaya</div><div class="item-vol">750 mL · varios sabores</div><div class="item-price"><span class="cur">S/.</span>38</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Smirnoff 750mL',46)">
+      <div class="check-circle">✓</div>
+      <div class="item-img multi">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/SMIRNOFF ROJO.png" alt="Smirnoff Rojo" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/SMIRNOFF VERDE.png" alt="Smirnoff Verde" onerror="this.style.display='none'">
+      </div>
+      <div class="item-info"><div class="item-name">Smirnoff</div><div class="item-vol">750 mL · varios sabores</div><div class="item-price"><span class="cur">S/.</span>46</div></div>
+    </div>
+  </div>
+
+  <div class="cat-title">Combo Pisco</div>
+  <div class="includes-note"><strong>Incluye</strong> gaseosa o energizante + hielo 2 kg</div>
+  <div class="items-grid">
+    <div class="item-card full-card" onclick="toggle(this,'4 Gallos 750mL',50)">
+      <div class="check-circle">✓</div>
+      <div class="item-img multi">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/PISCO 4 GALLOS ROJO.png" alt="4 Gallos Rojo" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/PISCO 4 GALLOS AZUL.png" alt="4 Gallos Azul" onerror="this.style.display='none'">
+      </div>
+      <div class="item-info"><div class="item-name">4 Gallos — Acholado / Quebranta</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>50</div></div>
+    </div>
+  </div>
+
+  <div class="cat-title">Combo Tequila</div>
+  <div class="includes-note"><strong>Incluye</strong> vaso shot</div>
+  <div class="items-grid">
+    <div class="item-card" onclick="toggle(this,'Jose Cuervo 750mL',70)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/TEQUILA JOSE CUERVO.png" alt="José Cuervo" onerror="this.parentNode.innerHTML='<div class=fallback>🍹</div>'"></div>
+      <div class="item-info"><div class="item-name">José Cuervo</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>70</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Olmeca 750mL',70)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/TEQUILA OLMECA.png" alt="Olmeca" onerror="this.parentNode.innerHTML='<div class=fallback>🍹</div>'"></div>
+      <div class="item-info"><div class="item-name">Olmeca</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>70</div></div>
+    </div>
+  </div>
+
+  <div class="cat-title">Combo Gin</div>
+  <div class="includes-note"><strong>Incluye</strong> Frugos / Everfest</div>
+  <div class="items-grid">
+    <div class="item-card" onclick="toggle(this,'Jagermeister 750mL',85)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/GIN JAGERMEISTER.png" alt="Jägermeister" onerror="this.parentNode.innerHTML='<div class=fallback>🍶</div>'"></div>
+      <div class="item-info"><div class="item-name">Jägermeister</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>85</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Bombay Sapphire 750mL',100)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/GIN BOMBAY.png" alt="Bombay" onerror="this.parentNode.innerHTML='<div class=fallback>🍶</div>'"></div>
+      <div class="item-info"><div class="item-name">Bombay Sapphire</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>100</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CERVEZAS ===== -->
+<div id="cervezas" class="section">
+  <div class="cat-title">Cervezas</div>
+  <div class="items-grid">
+    <div class="item-card" onclick="toggle(this,'Six Cristal 473mL',32)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CERVEZA CRISTAL 473ML.png" alt="Cristal" onerror="this.parentNode.innerHTML='<div class=fallback>🍺</div>'"></div>
+      <div class="item-info"><div class="item-name">Six Tres Cruces / Cristal</div><div class="item-vol">473 mL</div><div class="item-price"><span class="cur">S/.</span>32</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Six Pilsen 473mL',33)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CERVEZA PILSEN 473ML.png" alt="Pilsen" onerror="this.parentNode.innerHTML='<div class=fallback>🍺</div>'"></div>
+      <div class="item-info"><div class="item-name">Six Pilsen</div><div class="item-vol">473 mL</div><div class="item-price"><span class="cur">S/.</span>33</div></div>
+    </div>
+    <div class="item-card full-card" onclick="toggle(this,'Six Cusquena Trigo 473mL',36)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CERVEZA CUSQUEÑA 473ML.png" alt="Cusqueña" onerror="this.parentNode.innerHTML='<div class=fallback>🍺</div>'"></div>
+      <div class="item-info"><div class="item-name">Six Pack Cusqueña Trigo</div><div class="item-vol">473 mL</div><div class="item-price"><span class="cur">S/.</span>36</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VINOS ===== -->
+<div id="vinos" class="section">
+  <div class="cat-title">Vinos</div>
+  <div class="items-grid">
+    <div class="item-card" onclick="toggle(this,'Tabernero Rose',20)">
+      <div class="check-circle">✓</div>
+      <div class="item-img multi">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/VINO TABERNERO GRAN ROSE.png" alt="Gran Rosé" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/VINO TABERNERO BORGOÑA.png" alt="Borgoña" onerror="this.style.display='none'">
+      </div>
+      <div class="item-info"><div class="item-name">Tabernero Gran Rosé / Borgoña</div><div class="item-price"><span class="cur">S/.</span>20</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Casillero del Diablo',40)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/VINO CASILLERO DEL DIABLO.png" alt="Casillero" onerror="this.parentNode.innerHTML='<div class=fallback>🍷</div>'"></div>
+      <div class="item-info"><div class="item-name">Casillero del Diablo</div><div class="item-price"><span class="cur">S/.</span>40</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Riccadonna Ruby 750mL',60)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/ESPUMANTE RICCADONNA.png" alt="Riccadonna" onerror="this.parentNode.innerHTML='<div class=fallback>🥂</div>'"></div>
+      <div class="item-info"><div class="item-name">Riccadonna Ruby</div><div class="item-vol">750 mL</div><div class="item-price"><span class="cur">S/.</span>60</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Pack Vinoloko',30)">
+      <div class="check-circle">✓</div>
+      <div class="item-img multi">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/VINO TABERNERO BORGOÑA.png" alt="Borgoña" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/FOURLOCO.png" alt="Fourloko" onerror="this.style.display='none'">
+      </div>
+      <div class="item-info"><div class="item-name">Pack Vinoloko</div><div class="item-vol">Borgoña + Fourloko</div><div class="item-price"><span class="cur">S/.</span>30</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RTD ===== -->
+<div id="rtd" class="section">
+  <div class="cat-title">Ready to Drink</div>
+  <div class="items-grid">
+    <div class="item-card" onclick="toggle(this,'Mikes Hard 355mL',7)">
+      <div class="check-circle">✓</div>
+      <div class="item-img multi">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/MIKES BLUEBERRY.png" alt="Mikes Blue" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/MIKES VERDE.png" alt="Mikes Verde" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/MIKES MARACUYA,LIMON,FRESA.webp" alt="Mikes Mix" onerror="this.style.display='none'">
+      </div>
+      <div class="item-info"><div class="item-name">Mike's Hard</div><div class="item-vol">355 mL · varios sabores</div><div class="item-price"><span class="cur">S/.</span>7</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Fourloko 473mL',12)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/FOURLOCO.png" alt="Fourloko" onerror="this.parentNode.innerHTML='<div class=fallback>🍺</div>'"></div>
+      <div class="item-info"><div class="item-name">Fourloko (sabores)</div><div class="item-vol">473 mL</div><div class="item-price"><span class="cur">S/.</span>12</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Chilcano 275mL',7)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CHILCANO.png" alt="Chilcano" onerror="this.parentNode.innerHTML='<div class=fallback>🍶</div>'"></div>
+      <div class="item-info"><div class="item-name">Chilcano</div><div class="item-vol">275 mL</div><div class="item-price"><span class="cur">S/.</span>7</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'DFiesta 2L',7)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/DFIESTA.png" alt="D'Fiesta" onerror="this.parentNode.innerHTML='<div class=fallback>🥤</div>'"></div>
+      <div class="item-info"><div class="item-name">D'Fiesta</div><div class="item-vol">2 L</div><div class="item-price"><span class="cur">S/.</span>7</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CIGARROS ===== -->
+<div id="cigarros" class="section">
+  <div class="cat-title">Cigarros</div>
+  <div class="items-grid">
+    <div class="item-card" onclick="toggle(this,'Lucky Strike XL 10u',15)">
+      <div class="check-circle">✓</div>
+      <div class="item-img multi">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CIGARRO LUCKY SANDIA.png" alt="Lucky Sandía" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CIGARROS LUCKY NARANJA.png" alt="Lucky Naranja" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CIGARRO LUCKY MORA.png" alt="Lucky Mora" onerror="this.style.display='none'">
+      </div>
+      <div class="item-info"><div class="item-name">Lucky Strike XL</div><div class="item-vol">10 unid · sandía/naranja/verde</div><div class="item-price"><span class="cur">S/.</span>15</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Lucky Strike XL 20u',25)">
+      <div class="check-circle">✓</div>
+      <div class="item-img multi">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CIGARRO LUCKY SANDIA.png" alt="Lucky Sandía" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CIGARROS LUCKY NARANJA.png" alt="Lucky Naranja" onerror="this.style.display='none'">
+        <img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CIGARRO LUCKY MORA.png" alt="Lucky Mora" onerror="this.style.display='none'">
+      </div>
+      <div class="item-info"><div class="item-name">Lucky Strike XL</div><div class="item-vol">20 unid · sandía/naranja/verde</div><div class="item-price"><span class="cur">S/.</span>25</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Pall Mall Click 20u',20)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CIGARRO PALL MALL.png" alt="Pall Mall" onerror="this.parentNode.innerHTML='<div class=fallback>🚬</div>'"></div>
+      <div class="item-info"><div class="item-name">Pall Mall Click</div><div class="item-vol">20 unid</div><div class="item-price"><span class="cur">S/.</span>20</div></div>
+    </div>
+    <div class="item-card" onclick="toggle(this,'Esse 20u',15)">
+      <div class="check-circle">✓</div>
+      <div class="item-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/CIGARRO ESSE.png" alt="Esse" onerror="this.parentNode.innerHTML='<div class=fallback>🚬</div>'"></div>
+      <div class="item-info"><div class="item-name">Esse</div><div class="item-vol">20 unid · mora</div><div class="item-price"><span class="cur">S/.</span>15</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="contact-bar">
+  <div><div class="contact-label">Pedidos y consultas</div><div class="contact-number">901-618-129</div></div>
+  <div class="yape-badge">YAPE</div>
+</div>
+
+<button class="cart-fab" id="cartFab" onclick="openCart()">🛒 Ver pedido <span class="cart-badge" id="cartCount">0</span></button>
+
+<!-- MODAL CARRITO -->
+<div class="overlay" id="cartOverlay">
+  <div class="modal">
+    <button class="close-btn" onclick="closeCart()">✕</button>
+    <div class="modal-title">Tu pedido</div>
+    <div id="cartItemsList"></div>
+
+    <hr class="separator">
+    <div class="cat-title" style="font-size:0.8rem;margin-top:0.3rem;">¿Agregar adicionales?</div>
+    <div class="adics-grid">
+      <div class="adic-card" onclick="toggleAdic(this,'Coca-Cola 1.5L',8,'COCACOLA.png')">
+        <div class="adic-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/COCACOLA.png" alt="Coca-Cola" onerror="this.parentNode.innerHTML='🥤'"></div>
+        <div class="adic-info"><div class="adic-name">Coca-Cola 1.5L</div><div class="adic-price"><span class="cur">S/.</span>8</div></div>
+      </div>
+      <div class="adic-card" onclick="toggleAdic(this,'Coca-Cola 2.25L',10,'COCACOLA.png')">
+        <div class="adic-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/COCACOLA.png" alt="Coca-Cola" onerror="this.parentNode.innerHTML='🥤'"></div>
+        <div class="adic-info"><div class="adic-name">Coca-Cola 2.25L</div><div class="adic-price"><span class="cur">S/.</span>10</div></div>
+      </div>
+      <div class="adic-card" onclick="toggleAdic(this,'Everfest 2L',7,'EVERFEST.png')">
+        <div class="adic-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/EVERFEST.png" alt="Everfest" onerror="this.parentNode.innerHTML='🥤'"></div>
+        <div class="adic-info"><div class="adic-name">Everfest 2L</div><div class="adic-price"><span class="cur">S/.</span>7</div></div>
+      </div>
+      <div class="adic-card" onclick="toggleAdic(this,'Hielo 2kg',5,'BOLSA HIELO.png')">
+        <div class="adic-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/BOLSA HIELO.png" alt="Hielo" onerror="this.parentNode.innerHTML='🧊'"></div>
+        <div class="adic-info"><div class="adic-name">Hielo 2 kg</div><div class="adic-price"><span class="cur">S/.</span>5</div></div>
+      </div>
+      <div class="adic-card" onclick="toggleAdic(this,'Red Bull 250mL',8,'REDBULL.png')">
+        <div class="adic-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/REDBULL.png" alt="Red Bull" onerror="this.parentNode.innerHTML='⚡'"></div>
+        <div class="adic-info"><div class="adic-name">Red Bull 250mL</div><div class="adic-price"><span class="cur">S/.</span>8</div></div>
+      </div>
+      <div class="adic-card" onclick="toggleAdic(this,'Agua Cielo 355mL',2,'AGUA CIELO.png')">
+        <div class="adic-img"><img src="https://ezzzien.github.io/LICORERIADESMO/Botellas/AGUA CIELO.png" alt="Agua Cielo" onerror="this.parentNode.innerHTML='💧'"></div>
+        <div class="adic-info"><div class="adic-name">Agua Cielo 355mL</div><div class="adic-price"><span class="cur">S/.</span>2</div></div>
+      </div>
+    </div>
+
+    <hr class="separator">
+    <div class="cart-total"><div class="cart-total-label">Total</div><div class="cart-total-price" id="cartTotal">S/.0</div></div>
+    <button class="btn-primary" onclick="openForm()" style="margin-top:1.2rem;">Continuar →</button>
+    <button class="btn-secondary" onclick="closeCart()">Seguir eligiendo</button>
+  </div>
+</div>
+
+<!-- MODAL FORMULARIO -->
+<div class="overlay" id="formOverlay">
+  <div class="modal">
+    <button class="close-btn" onclick="closeForm()">✕</button>
+    <div class="modal-title">Datos de entrega</div>
+    <div class="form-group"><label class="form-label">Tu nombre</label><input class="form-input" id="fNombre" type="text" placeholder="Nombre completo" /></div>
+    <div class="form-group"><label class="form-label">Celular (WhatsApp)</label><input class="form-input" id="fCelular" type="tel" placeholder="9XXXXXXXX" /></div>
+    <div class="form-group"><label class="form-label">Dirección de entrega</label><input class="form-input" id="fDireccion" type="text" placeholder="Calle, número, referencia" /></div>
+    <div class="yape-note">
+      <strong>💜 Cómo pagar</strong>
+      Yapea el total al número de abajo y envía la <strong>captura por WhatsApp</strong> al mismo número. Tu pedido se confirma cuando verifiquemos el pago.
+      <div class="copy-number"><span>901-618-129</span><button class="copy-btn" onclick="copiarNumero()">Copiar</button></div>
+    </div>
+    <button class="btn-primary" id="btnEnviar" onclick="enviarPedido()">📲 Enviar pedido</button>
+    <button class="btn-secondary" onclick="closeForm()">← Volver al carrito</button>
+  </div>
+</div>
+
+<!-- MODAL ESPERA -->
+<div class="overlay" id="waitOverlay">
+  <div class="modal">
+    <div class="waiting-screen">
+      <div class="waiting-icon">⏳</div>
+      <div class="waiting-title">Pedido enviado</div>
+      <div class="waiting-sub">
+        Tu pedido está siendo revisado.<br>
+        Recibirás un mensaje de confirmación por WhatsApp en breve.<br><br>
+        <strong style="color:#c9a227;">Recuerda enviar la captura del Yape al 901-618-129</strong>
+      </div>
+      <button class="btn-secondary" style="margin-top:1.5rem;" onclick="resetTodo()">Hacer otro pedido</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const app = initializeApp({
+    apiKey: "AIzaSyB7gYAmy_DNY8lJMjXMyekvbuAsqcIisr8",
+    authDomain: "desmo-carta.firebaseapp.com",
+    projectId: "desmo-carta",
+    storageBucket: "desmo-carta.firebasestorage.app",
+    messagingSenderId: "776883046319",
+    appId: "1:776883046319:web:724b812cde1b3ec32ad15a",
+    databaseURL: "https://desmo-carta-default-rtdb.firebaseio.com"
+  });
+  const db = getDatabase(app);
+  window._fbPush = async (pedido) => await push(ref(db, 'pedidos'), pedido);
+</script>
+
+<script>
+  const cart = {};
+  const BASE = 'https://ezzzien.github.io/LICORERIADESMO/Botellas/';
+
+  function toggle(el, name, price) {
+    if (el.classList.contains('selected')) {
+      el.classList.remove('selected');
+      delete cart[name];
+    } else {
+      el.classList.add('selected');
+      cart[name] = { price, qty: 1, img: el.querySelector('img')?.src || '' };
+    }
+    updateFab();
+  }
+
+  function toggleAdic(el, name, price, imgFile) {
+    if (el.classList.contains('selected')) {
+      el.classList.remove('selected');
+      delete cart[name];
+    } else {
+      el.classList.add('selected');
+      cart[name] = { price, qty: 1, img: BASE + imgFile };
+    }
+    updateCartUI();
+  }
+
+  function updateFab() {
+    const count = Object.values(cart).reduce((s,i) => s + i.qty, 0);
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('cartFab').classList.toggle('show', count > 0);
+  }
+
+  function updateCartUI() {
+    const keys = Object.keys(cart);
+    const total = keys.reduce((s,k) => s + cart[k].price * cart[k].qty, 0);
+    document.getElementById('cartTotal').textContent = 'S/.' + total;
+    updateFab();
+
+    document.getElementById('cartItemsList').innerHTML = keys.length === 0
+      ? '<p style="color:#3a2a08;font-size:0.75rem;text-align:center;padding:1rem 0;">Aún no hay productos</p>'
+      : keys.map(k => `
+        <div class="cart-item">
+          <img class="cart-item-img" src="${cart[k].img}" onerror="this.style.display='none'" alt="${k}">
+          <div style="flex:1">
+            <div class="cart-item-name">${k}</div>
+            <div class="cart-item-sub">S/.${cart[k].price} c/u</div>
+          </div>
+          <div class="cart-item-qty">
+            <button class="qty-btn" onclick="cambiarQty('${k}',-1)">−</button>
+            <span class="qty-num">${cart[k].qty}</span>
+            <button class="qty-btn" onclick="cambiarQty('${k}',1)">+</button>
+            <div class="cart-item-price">S/.${cart[k].price * cart[k].qty}</div>
+          </div>
+        </div>`).join('');
+  }
+
+  function cambiarQty(name, delta) {
+    if (!cart[name]) return;
+    cart[name].qty = Math.max(1, cart[name].qty + delta);
+    updateCartUI();
+  }
+
+  function openCart()  { updateCartUI(); document.getElementById('cartOverlay').classList.add('show'); }
+  function closeCart() { document.getElementById('cartOverlay').classList.remove('show'); }
+  function openForm()  { if (!Object.keys(cart).length) return; closeCart(); document.getElementById('formOverlay').classList.add('show'); }
+  function closeForm() { document.getElementById('formOverlay').classList.remove('show'); openCart(); }
+
+  function copiarNumero() {
+    navigator.clipboard.writeText('901618129').then(() => showToast('✓ Número copiado'));
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  async function enviarPedido() {
+    const nombre    = document.getElementById('fNombre').value.trim();
+    const celular   = document.getElementById('fCelular').value.trim();
+    const direccion = document.getElementById('fDireccion').value.trim();
+    if (!nombre || !celular || !direccion) { alert('Por favor completa todos los campos.'); return; }
+    const keys = Object.keys(cart);
+    if (!keys.length) { alert('Tu carrito está vacío.'); return; }
+
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = true; btn.textContent = 'Enviando...';
+
+    const total = keys.reduce((s,k) => s + cart[k].price * cart[k].qty, 0);
+    const items = keys.map(k => ({ nombre: k, precio: cart[k].price, cantidad: cart[k].qty, subtotal: cart[k].price * cart[k].qty }));
+
+    try {
+      await window._fbPush({ cliente: { nombre, celular, direccion }, items, total, estado: 'pendiente', fecha: new Date().toISOString() });
+      document.getElementById('formOverlay').classList.remove('show');
+      document.getElementById('waitOverlay').classList.add('show');
+      const lineas = items.map(i => `• ${i.cantidad}x ${i.nombre} — S/.${i.subtotal}`).join('\n');
+      window.open('https://wa.me/51901618129?text=' + encodeURIComponent(`🛒 *NUEVO PEDIDO — DESMO*\n\n👤 ${nombre}\n📱 ${celular}\n📍 ${direccion}\n\n${lineas}\n\n💰 *TOTAL: S/.${total}*`), '_blank');
+    } catch(e) {
+      alert('Error al enviar. Verifica tu conexión.');
+      console.error(e);
+    }
+    btn.disabled = false; btn.textContent = '📲 Enviar pedido';
+  }
+
+  function resetTodo() {
+    Object.keys(cart).forEach(k => delete cart[k]);
+    document.querySelectorAll('.item-card.selected, .adic-card.selected').forEach(el => el.classList.remove('selected'));
+    document.getElementById('fNombre').value = '';
+    document.getElementById('fCelular').value = '';
+    document.getElementById('fDireccion').value = '';
+    document.getElementById('waitOverlay').classList.remove('show');
+    updateFab();
+  }
+
+  function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('visible');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
